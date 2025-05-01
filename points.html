@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生积分管理系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .section {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input,
+        select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 15% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 5px;
+        }
+
+        .lottery-box {
+            font-size: 24px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .lottery-results {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        #lotteryResults p {
+            margin: 5px 0;
+        }
+
+        .error {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .hitokoto-box {
+            padding: 15px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+    </style>
+    <script src="https://unpkg.com/pinyin-pro@3.0.3/dist/pinyin-pro.min.js"></script>
+</head>
+
+<body>
+    <div class="nav">
+        <button onclick="showSection('studentMgmt')">学生管理</button>
+        <button onclick="showSection('pointsMgmt')">积分管理</button>
+    </div>
+
+    <!-- 学生管理 -->
+    <div id="studentMgmt" class="section active">
+        <!-- 正能量句子区域 -->
+        <div class="hitokoto-box" id="hitokotoBox"></div>
+        <h2>学生信息管理</h2>
+        <div class="form-group">
+            <form id="studentForm">
+                <input type="hidden" id="studentId">
+                <input type="text" id="name" placeholder="姓名" required>
+                <input type="text" id="grade" placeholder="年级" oninput="autoCompleteGrade(this)" required>
+                <button type="submit">保存学生</button>
+                <button type="button" onclick="clearForm()">取消</button>
+            </form>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>姓名</th>
+                    <th>年级</th>
+                    <th>总积分</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="studentList"></tbody>
+        </table>
+    </div>
+
+    <!-- 积分管理 -->
+    <div id="pointsMgmt" class="section">
+        <h2>积分管理</h2>
+        <div class="form-group">
+            <input list="studentNames" id="studentInput" placeholder="输入学生姓名或拼音" style="width: 250px;"
+                oninput="filterStudentNames()">
+            <datalist id="studentNames"></datalist>
+            <input type="number" id="lotteryCount" placeholder="输入抽奖次数" min="1">
+            <button onclick="startLottery()">基础积分抽奖</button>
+            <button onclick="addHomeworkPoints()">完成作业</button>
+            <button onclick="showExamModal()">考试奖励</button>
+            <button onclick="showCustomModal()">进步奖励</button>
+            <div class="error" id="studentError"></div>
+        </div>
+        <h3>积分记录</h3>
+        <table id="pointsHistory">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>学生</th>
+                    <th>项目</th>
+                    <th>详情</th>
+                    <th>积分</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 抽奖弹窗 -->
+    <div id="lotteryModal" class="modal">
+        <div class="modal-content">
+            <h3>基础积分抽奖（5 - 30分）</h3>
+            <div class="lottery-box" id="lotteryNumber">--</div>
+            <div class="form-group">
+                <button onclick="toggleLottery()" id="lotteryControl">▶ 开始抽奖</button>
+                <button onclick="confirmLottery()" style="background:#2196F3">✅ 确认积分</button>
+                <button onclick="cancelLottery()" style="background:#f44336">❌ 取消</button>
+            </div>
+            <div class="lottery-results">
+                <h4>抽奖记录</h4>
+                <div id="lotteryResults"></div>
+                <div id="totalPoints" style="font-weight: bold; margin-top: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 考试奖励弹窗 -->
+    <div id="examModal" class="modal">
+        <div class="modal-content">
+            <h3>考试分数录入</h3>
+            <input type="number" id="examScore" placeholder="输入考试分数" min="0" max="100">
+            <div class="error" id="examError"></div>
+            <div class="form-group" style="margin-top:15px">
+                <button onclick="confirmExam()">确认</button>
+                <button onclick="closeModals()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义奖励弹窗 -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <h3>自定义积分奖励</h3>
+            <input type="number" id="customPoints" placeholder="输入奖励积分" min="1">
+            <div class="error" id="customError"></div>
+            <div class="form-group" style="margin-top:15px">
+                <button onclick="confirmCustom()">确认</button>
+                <button onclick="closeModals()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化时获取正能量句子
+        window.addEventListener('load', () => {
+            fetchHitokoto();
+            init();
+        });
+
+        function fetchHitokoto() {
+            fetch('https://v1.hitokoto.cn?c=f&encode=text')
+               .then(response => response.text())
+               .then(text => {
+                    const hitokotoBox = document.getElementById('hitokotoBox');
+                    hitokotoBox.innerHTML = `<p>${text}</p>`;
+                })
+               .catch(error => {
+                    console.error('获取句子失败', error);
+                    document.getElementById('hitokotoBox').innerHTML = '<p>获取正能量句子失败，请重试</p>';
+                });
+        }
+
+        let students = JSON.parse(localStorage.getItem('students')) || [];
+        let pointsRules = {
+            basic: { min: 5, max: 30 },
+            homework: 20,
+            exam: { A: 100, B: 50 }
+        };
+        let lotteryInterval = null;
+        let lotteryResults = [];
+        let currentStudent = null;
+
+        // 重置输入框和错误信息
+        function resetInputAndError() {
+            document.getElementById('examScore').value = '';
+            document.getElementById('customPoints').value = '';
+            document.getElementById('examError').textContent = '';
+            document.getElementById('customError').textContent = '';
+            document.getElementById('studentError').textContent = '';
+        }
+
+        // 学生管理功能
+        document.getElementById('studentForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const studentData = {
+                id: document.getElementById('studentId').value || Date.now(),
+                name: document.getElementById('name').value.trim(),
+                grade: document.getElementById('grade').value.trim(),
+                points: 0,
+                history: []
+            };
+
+            if (!studentData.name || !studentData.grade) {
+                alert("请填写完整信息");
+                return;
+            }
+
+            const index = students.findIndex(s => s.id == studentData.id);
+            if (index > -1) {
+                students[index] = studentData;
+            } else {
+                students.push(studentData);
+            }
+
+            saveData();
+            renderAll();
+            this.reset();
+        });
+
+        function renderAll() {
+            renderStudentList();
+            renderStudentDatalist();
+            renderPointsHistory();
+        }
+
+        function renderStudentList() {
+            const sortedStudents = [...students].sort((a, b) => b.points - a.points);
+            const tbody = document.getElementById('studentList');
+            tbody.innerHTML = sortedStudents.map((student, index) => {
+                let medal = '';
+                if (index === 0) {
+                    medal = '🥇';
+                } else if (index === 1) {
+                    medal = '🥈';
+                } else if (index === 2) {
+                    medal = '🥉';
+                }
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${medal}${student.name}</td>
+                        <td>${student.grade}</td>
+                        <td>${student.points}</td>
+                        <td>
+                            <button onclick="editStudent(${student.id})">编辑</button>
+                            <button onclick="deleteStudent(${student.id})">删除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 积分管理功能
+        function startLottery() {
+            if (!findStudent()) return;
+            const lotteryCount = parseInt(document.getElementById('lotteryCount').value);
+            if (isNaN(lotteryCount) || lotteryCount < 1) {
+                alert('请输入有效的抽奖次数');
+                return;
+            }
+            lotteryResults = [];
+            document.getElementById('lotteryModal').style.display = 'block';
+            document.getElementById('lotteryResults').innerHTML = '';
+            document.getElementById('totalPoints').innerHTML = '';
+            startLotteryAnimation(lotteryCount);
+        }
+
+        function startLotteryAnimation(count) {
+            let currentCount = 0;
+            lotteryInterval = setInterval(() => {
+                if (currentCount < count) {
+                    const num = Math.floor(Math.random() *
+                        (pointsRules.basic.max - pointsRules.basic.min + 1)) + pointsRules.basic.min;
+                    lotteryResults.push(num);
+                    const resultsDiv = document.getElementById('lotteryResults');
+                    resultsDiv.innerHTML += `<p>第${currentCount + 1}次抽奖结果：<strong>${num}</strong> 分</p>`;
+                    currentCount++;
+                    const total = lotteryResults.reduce((a, b) => a + b, 0);
+                    document.getElementById('totalPoints').textContent = `当前总分：${total} 分`;
+                } else {
+                    clearInterval(lotteryInterval);
+                    document.getElementById('lotteryControl').textContent = '▶ 开始抽奖';
+                }
+            }, 500);
+        }
+
+        function confirmLottery() {
+            if (!currentStudent || lotteryResults.length === 0) {
+                alert("请先完成抽奖");
+                return;
+            }
+
+            const total = lotteryResults.reduce((a, b) => a + b, 0);
+            addPointsRecord(total, '基础积分', `抽奖获得 ${total} 分`);
+            closeModals();
+        }
+
+        function cancelLottery() {
+            clearInterval(lotteryInterval);
+            lotteryResults = [];
+            document.getElementById('lotteryNumber').textContent = "--";
+            document.getElementById('lotteryResults').innerHTML = "";
+            document.getElementById('lotteryModal').style.display = "none";
+            currentStudent = null;
+            resetInputAndError();
+        }
+
+        // 显示考试奖励弹窗
+        function showExamModal() {
+            if (!findStudent()) return;
+            document.getElementById('examModal').style.display = 'block';
+        }
+
+        // 显示自定义奖励弹窗
+        function showCustomModal() {
+            if (!findStudent()) return;
+            document.getElementById('customModal').style.display = 'block';
+        }
+
+        // 其他积分功能
+        function addHomeworkPoints() {
+            if (!findStudent()) return;
+            addPointsRecord(pointsRules.homework, '完成作业', '作业满分');
+        }
+
+        function confirmExam() {
+            const score = parseInt(document.getElementById('examScore').value);
+            if (!currentStudent || isNaN(score)) {
+                document.getElementById('examError').textContent = "请输入有效分数";
+                return;
+            }
+
+            let points = 0;
+            if (score >= 95) points = 100;
+            else if (score >= 90) points = 50;
+
+            if (points > 0) {
+                addPointsRecord(points, '考试奖励', `${score}分`);
+                closeModals();
+            } else {
+                document.getElementById('examError').textContent = "分数未达到奖励标准";
+            }
+        }
+
+        function confirmCustom() {
+            const points = parseInt(document.getElementById('customPoints').value);
+            if (!currentStudent || isNaN(points) || points < 1) {
+                document.getElementById('customError').textContent = "请输入有效积分";
+                return;
+            }
+
+            addPointsRecord(points, '进步奖励', '自定义奖励');
+            closeModals();
+        }
+
+        // 通用功能
+        function addPointsRecord(points, type, detail) {
+            currentStudent.points += points;
+            currentStudent.history.push({
+                date: new Date().toLocaleDateString(),
+                type: type,
+                detail: detail,
+                points: points
+            });
+            saveData();
+            renderAll();
+        }
+
+        function findStudent() {
+            const name = document.getElementById('studentInput').value.trim();
+            currentStudent = students.find(s => s.name === name);
+            if (!currentStudent) {
+                document.getElementById('studentError').textContent = "未找到该学生，请先添加学生";
+                return false;
+            }
+            document.getElementById('studentError').textContent = '';
+            return true;
+        }
+
+        function renderStudentDatalist() {
+            const datalist = document.getElementById('studentNames');
+            datalist.innerHTML = students.map(s =>
+                `<option value="${s.name}">${s.name}（${s.grade}）</option>`
+            ).join('');
+        }
+
+        function renderPointsHistory() {
+            const tbody = document.querySelector('#pointsHistory tbody');
+            const historyItems = students.flatMap(s => s.history).reverse();
+            tbody.innerHTML = historyItems.map(record => `
+                <tr>
+                    <td>${record.date}</td>
+                    <td>${record.studentName || '未知'}</td>
+                    <td>${record.type}</td>
+                    <td>${record.detail}</td>
+                    <td>+${record.points}</td>
+                </tr>
+            `).join('');
+        }
+
+        function saveData() {
+            localStorage.setItem('students', JSON.stringify(students));
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            clearInterval(lotteryInterval);
+            document.getElementById('lotteryControl').textContent = '▶ 开始抽奖';
+            resetInputAndError();
+            currentStudent = null;
+        }
+
+        // 学生操作
+        function editStudent(id) {
+            const student = students.find(s => s.id == id);
+            if (student) {
+                document.getElementById('studentId').value = student.id;
+                document.getElementById('name').value = student.name;
+                document.getElementById('grade').value = student.grade;
+            }
+        }
+
+        function deleteStudent(id) {
+            if (confirm('确定要删除该学生吗？')) {
+                students = students.filter(s => s.id != id);
+                saveData();
+                renderAll();
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('studentForm').reset();
+            document.getElementById('studentId').value = '';
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        // 年级自动补全
+        function autoCompleteGrade(input) {
+            const value = input.value;
+            const num = parseInt(value);
+            if (!isNaN(num) && num >= 1 && num <= 12) {
+                if (num <= 6) {
+                    input.value = `${num}年级`;
+                } else if (num === 7) {
+                    input.value = `初一`;
+                } else if (num === 8) {
+                    input.value = `初二`;
+                } else if (num === 9) {
+                    input.value = `初三`;
+                } else if (num === 10) {
+                    input.value = `高一`;
+                } else if (num === 11) {
+                    input.value = `高二`;
+                } else if (num === 12) {
+                    input.value = `高三`;
+                }
+            }
+        }
+
+        // 拼音联想学生姓名
+        function filterStudentNames() {
+            const input = document.getElementById('studentInput');
+            const datalist = document.getElementById('studentNames');
+            const query = input.value.toLowerCase();
+
+            const filteredStudents = students.filter(student => {
+                const name = student.name.toLowerCase();
+                const pinyinStr = pinyinPro.getPinyin(name, { toneType: 'none' }).toLowerCase();
+                return name.includes(query) || pinyinStr.includes(query);
+            });
+
+            datalist.innerHTML = filteredStudents.map(s =>
+                `<option value="${s.name}">${s.name}（${s.grade}）</option>`
+            ).join('');
+        }
+
+        // 初始化
+        function init() {
+            renderAll();
+        }
+    </script>
+</body>
+
+</html>    
