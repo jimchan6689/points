@@ -130,23 +130,149 @@
         }
     </style>
     <script src="https://unpkg.com/pinyin-pro@3.0.3/dist/pinyin-pro.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
-    <script>
-        const firebaseConfig = {
-            // Firebase 配置信息
-            apiKey: "AIzaSyBuSvvufHYUsRRWpXgONESWI2ZTP8JpUT0",
-            authDomain: "points-21180.firebaseapp.com",
-            projectId: "points-21180",
-            storageBucket: "points-21180.firebasestorage.app",
-            messagingSenderId: "1030275730525",
-            appId: "1:1030275730525:web:e433a5ee160b2ce90951b4",
-            measurementId: "G-2MXDVWKZ5R"
-        };
+</head>
 
-        // 初始化 Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+<body>
+    <div class="nav">
+        <button onclick="showSection('studentMgmt')">学生管理</button>
+        <button onclick="showSection('pointsMgmt')">积分管理</button>
+    </div>
+
+    <!-- 学生管理 -->
+    <div id="studentMgmt" class="section active">
+        <!-- 正能量句子区域 -->
+        <div class="hitokoto-box" id="hitokotoBox"></div>
+        <h2>学生信息管理</h2>
+        <div class="form-group">
+            <form id="studentForm">
+                <input type="hidden" id="studentId">
+                <input type="text" id="name" placeholder="姓名" required>
+                <input type="text" id="grade" placeholder="年级" oninput="autoCompleteGrade(this)" required>
+                <button type="submit">保存学生</button>
+                <button type="button" onclick="clearForm()">取消</button>
+            </form>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>姓名</th>
+                    <th>年级</th>
+                    <th>总积分</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="studentList"></tbody>
+        </table>
+    </div>
+
+    <!-- 积分管理 -->
+    <div id="pointsMgmt" class="section">
+        <h2>积分管理</h2>
+        <div class="form-group">
+            <input list="studentNames" id="studentInput" placeholder="输入学生姓名或拼音" style="width: 250px;"
+                oninput="filterStudentNames()">
+            <datalist id="studentNames"></datalist>
+            <input type="number" id="lotteryCount" placeholder="输入抽奖次数" min="1">
+            <button onclick="startLottery()">基础积分抽奖</button>
+            <button onclick="addHomeworkPoints()">完成作业</button>
+            <button onclick="showExamModal()">考试奖励</button>
+            <button onclick="showCustomModal()">进步奖励</button>
+            <div class="error" id="studentError"></div>
+        </div>
+        <h3>积分记录</h3>
+        <table id="pointsHistory">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>学生</th>
+                    <th>项目</th>
+                    <th>详情</th>
+                    <th>积分</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- 抽奖弹窗 -->
+    <div id="lotteryModal" class="modal">
+        <div class="modal-content">
+            <h3>基础积分抽奖（5 - 30分）</h3>
+            <div class="lottery-box" id="lotteryNumber">--</div>
+            <div class="form-group">
+                <button onclick="toggleLottery()" id="lotteryControl">▶ 开始抽奖</button>
+                <button onclick="confirmLottery()" style="background:#2196F3">✅ 确认积分</button>
+                <button onclick="cancelLottery()" style="background:#f44336">❌ 取消</button>
+            </div>
+            <div class="lottery-results">
+                <h4>抽奖记录</h4>
+                <div id="lotteryResults"></div>
+                <div id="totalPoints" style="font-weight: bold; margin-top: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 考试奖励弹窗 -->
+    <div id="examModal" class="modal">
+        <div class="modal-content">
+            <h3>考试分数录入</h3>
+            <input type="number" id="examScore" placeholder="输入考试分数" min="0" max="100">
+            <div class="error" id="examError"></div>
+            <div class="form-group" style="margin-top:15px">
+                <button onclick="confirmExam()">确认</button>
+                <button onclick="closeModals()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义奖励弹窗 -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <h3>自定义积分奖励</h3>
+            <input type="number" id="customPoints" placeholder="输入奖励积分" min="1">
+            <div class="error" id="customError"></div>
+            <div class="form-group" style="margin-top:15px">
+                <button onclick="confirmCustom()">确认</button>
+                <button onclick="closeModals()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改积分弹窗 -->
+    <div id="editPointsModal" class="modal">
+        <div class="modal-content">
+            <h3>修改积分记录</h3>
+            <input type="number" id="editPoints" placeholder="输入积分">
+            <input type="text" id="editDetail" placeholder="输入详情">
+            <div class="error" id="editError"></div>
+            <div class="form-group" style="margin-top:15px">
+                <button onclick="confirmEditPoints()">确认修改</button>
+                <button onclick="closeModals()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化时获取正能量句子
+        window.addEventListener('load', () => {
+            fetchHitokoto();
+            init();
+        });
+
+        function fetchHitokoto() {
+            fetch('https://v1.hitokoto.cn?c=f&encode=text')
+              .then(response => response.text())
+              .then(text => {
+                    const hitokotoBox = document.getElementById('hitokotoBox');
+                    hitokotoBox.innerHTML = `<p>${text}</p>`;
+                })
+              .catch(error => {
+                    console.error('获取句子失败', error);
+                    document.getElementById('hitokotoBox').innerHTML = '<p>获取正能量句子失败，请重试</p>';
+                });
+        }
 
         let students = [];
         let pointsRules = {
@@ -157,6 +283,37 @@
         let lotteryInterval = null;
         let lotteryResults = [];
         let currentStudent = null;
+        let currentRecordIndex = null;
+        let currentStudentIndex = null;
+        let db;
+
+        // 打开 IndexedDB 数据库
+        const request = indexedDB.open('studentDB', 1);
+
+        request.onupgradeneeded = function (event) {
+            db = event.target.result;
+            // 创建一个对象存储空间来存储学生数据
+            const objectStore = db.createObjectStore('students', { keyPath: 'id' });
+            // 创建索引（可选）
+            objectStore.createIndex('name', 'name', { unique: false });
+        };
+
+        request.onsuccess = function (event) {
+            db = event.target.result;
+            // 从数据库中读取数据
+            const transaction = db.transaction(['students'], 'readonly');
+            const objectStore = transaction.objectStore('students');
+            const getAllRequest = objectStore.getAll();
+
+            getAllRequest.onsuccess = function (event) {
+                students = event.target.result;
+                renderAll();
+            };
+        };
+
+        request.onerror = function (event) {
+            console.error('打开数据库出错:', event.target.error);
+        };
 
         // 重置输入框和错误信息
         function resetInputAndError() {
@@ -165,6 +322,9 @@
             document.getElementById('examError').textContent = '';
             document.getElementById('customError').textContent = '';
             document.getElementById('studentError').textContent = '';
+            document.getElementById('editPoints').value = '';
+            document.getElementById('editDetail').value = '';
+            document.getElementById('editError').textContent = '';
         }
 
         // 学生管理功能
@@ -190,7 +350,7 @@
                 students.push(studentData);
             }
 
-            saveData();
+            saveDataToIndexedDB();
             renderAll();
             this.reset();
         });
@@ -338,9 +498,10 @@
                 date: new Date().toLocaleDateString(),
                 type: type,
                 detail: detail,
-                points: points
+                points: points,
+                studentName: currentStudent.name
             });
-            saveData();
+            saveDataToIndexedDB();
             renderAll();
         }
 
@@ -364,28 +525,40 @@
 
         function renderPointsHistory() {
             const tbody = document.querySelector('#pointsHistory tbody');
-            const historyItems = students.flatMap(s => s.history).reverse();
+            const historyItems = students.flatMap((student, studentIndex) =>
+                student.history.map((record, recordIndex) => ({
+                    ...record,
+                    studentIndex,
+                    recordIndex
+                }))
+            ).reverse();
             tbody.innerHTML = historyItems.map(record => `
                 <tr>
                     <td>${record.date}</td>
-                    <td>${record.studentName || '未知'}</td>
+                    <td>${record.studentName}</td>
                     <td>${record.type}</td>
                     <td>${record.detail}</td>
                     <td>+${record.points}</td>
+                    <td>
+                        <button onclick="showEditPointsModal(${record.studentIndex}, ${record.recordIndex})">修改</button>
+                    </td>
                 </tr>
             `).join('');
         }
 
-        function saveData() {
-            db.collection("students").doc("studentData").set({
-                students: students
-            })
-           .then(() => {
-                console.log("数据保存成功");
-            })
-           .catch((error) => {
-                console.error("数据保存失败: ", error);
+        // 保存数据到 IndexedDB
+        function saveDataToIndexedDB() {
+            const transaction = db.transaction(['students'], 'readwrite');
+            const objectStore = transaction.objectStore('students');
+            students.forEach(student => {
+                objectStore.put(student);
             });
+            transaction.oncomplete = function () {
+                console.log('数据保存到 IndexedDB 成功');
+            };
+            transaction.onerror = function (event) {
+                console.error('保存数据到 IndexedDB 出错:', event.target.error);
+            };
         }
 
         function closeModals() {
@@ -409,8 +582,16 @@
         function deleteStudent(id) {
             if (confirm('确定要删除该学生吗？')) {
                 students = students.filter(s => s.id != id);
-                saveData();
-                renderAll();
+                const transaction = db.transaction(['students'], 'readwrite');
+                const objectStore = transaction.objectStore('students');
+                objectStore.delete(id);
+                transaction.oncomplete = function () {
+                    console.log('学生信息从 IndexedDB 删除成功');
+                    renderAll();
+                };
+                transaction.onerror = function (event) {
+                    console.error('删除学生信息从 IndexedDB 出错:', event.target.error);
+                };
             }
         }
 
@@ -466,159 +647,41 @@
 
         // 初始化
         function init() {
-            db.collection("students").doc("studentData").onSnapshot((doc) => {
-                if (doc.exists) {
-                    students = doc.data().students;
-                    renderAll();
-                } else {
-                    console.log("未找到数据");
-                }
-            }, (error) => {
-                console.error("监听数据变化失败: ", error);
-            });
-
-            // 初始加载数据
-            db.collection("students").doc("studentData").get()
-           .then((doc) => {
-                if (doc.exists) {
-                    students = doc.data().students;
-                    renderAll();
-                } else {
-                    console.log("未找到数据");
-                }
-            })
-           .catch((error) => {
-                console.error("数据读取失败: ", error);
-            });
+            // 等待数据库打开成功后再渲染数据
+            request.onsuccess = function () {
+                renderAll();
+            };
         }
 
-        // 初始化时获取正能量句子
-        window.addEventListener('load', () => {
-            fetchHitokoto();
-            init();
-        });
+        // 显示修改积分弹窗
+        function showEditPointsModal(studentIndex, recordIndex) {
+            currentStudentIndex = studentIndex;
+            currentRecordIndex = recordIndex;
+            const record = students[studentIndex].history[recordIndex];
+            document.getElementById('editPoints').value = record.points;
+            document.getElementById('editDetail').value = record.detail;
+            document.getElementById('editPointsModal').style.display = 'block';
+        }
 
-        function fetchHitokoto() {
-            fetch('https://v1.hitokoto.cn?c=f&encode=text')
-               .then(response => response.text())
-               .then(text => {
-                    const hitokotoBox = document.getElementById('hitokotoBox');
-                    hitokotoBox.innerHTML = `<p>${text}</p>`;
-                })
-               .catch(error => {
-                    console.error('获取句子失败', error);
-                    document.getElementById('hitokotoBox').innerHTML = '<p>获取正能量句子失败，请重试</p>';
-                });
+        // 确认修改积分
+        function confirmEditPoints() {
+            const newPoints = parseInt(document.getElementById('editPoints').value);
+            const newDetail = document.getElementById('editDetail').value.trim();
+            if (isNaN(newPoints) || !newDetail) {
+                document.getElementById('editError').textContent = "请输入有效积分和详情";
+                return;
+            }
+
+            const oldPoints = students[currentStudentIndex].history[currentRecordIndex].points;
+            students[currentStudentIndex].points = students[currentStudentIndex].points - oldPoints + newPoints;
+            students[currentStudentIndex].history[currentRecordIndex].points = newPoints;
+            students[currentStudentIndex].history[currentRecordIndex].detail = newDetail;
+
+            saveDataToIndexedDB();
+            renderAll();
+            closeModals();
         }
     </script>
-</head>
-
-<body>
-    <div class="nav">
-        <button onclick="showSection('studentMgmt')">学生管理</button>
-        <button onclick="showSection('pointsMgmt')">积分管理</button>
-    </div>
-
-    <!-- 学生管理 -->
-    <div id="studentMgmt" class="section active">
-        <!-- 正能量句子区域 -->
-        <div class="hitokoto-box" id="hitokotoBox"></div>
-        <h2>学生信息管理</h2>
-        <div class="form-group">
-            <form id="studentForm">
-                <input type="hidden" id="studentId">
-                <input type="text" id="name" placeholder="姓名" required>
-                <input type="text" id="grade" placeholder="年级" oninput="autoCompleteGrade(this)" required>
-                <button type="submit">保存学生</button>
-                <button type="button" onclick="clearForm()">取消</button>
-            </form>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>序号</th>
-                    <th>姓名</th>
-                    <th>年级</th>
-                    <th>总积分</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody id="studentList"></tbody>
-        </table>
-    </div>
-
-    <!-- 积分管理 -->
-    <div id="pointsMgmt" class="section">
-        <h2>积分管理</h2>
-        <div class="form-group">
-            <input list="studentNames" id="studentInput" placeholder="输入学生姓名或拼音" style="width: 250px;"
-                oninput="filterStudentNames()">
-            <datalist id="studentNames"></datalist>
-            <input type="number" id="lotteryCount" placeholder="输入抽奖次数" min="1">
-            <button onclick="startLottery()">基础积分抽奖</button>
-            <button onclick="addHomeworkPoints()">完成作业</button>
-            <button onclick="showExamModal()">考试奖励</button>
-            <button onclick="showCustomModal()">进步奖励</button>
-            <div class="error" id="studentError"></div>
-        </div>
-        <h3>积分记录</h3>
-        <table id="pointsHistory">
-            <thead>
-                <tr>
-                    <th>日期</th>
-                    <th>学生</th>
-                    <th>项目</th>
-                    <th>详情</th>
-                    <th>积分</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <!-- 抽奖弹窗 -->
-    <div id="lotteryModal" class="modal">
-        <div class="modal-content">
-            <h3>基础积分抽奖（5 - 30分）</h3>
-            <div class="lottery-box" id="lotteryNumber">--</div>
-            <div class="form-group">
-                <button onclick="toggleLottery()" id="lotteryControl">▶ 开始抽奖</button>
-                <button onclick="confirmLottery()" style="background:#2196F3">✅ 确认积分</button>
-                <button onclick="cancelLottery()" style="background:#f44336">❌ 取消</button>
-            </div>
-            <div class="lottery-results">
-                <h4>抽奖记录</h4>
-                <div id="lotteryResults"></div>
-                <div id="totalPoints" style="font-weight: bold; margin-top: 10px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 考试奖励弹窗 -->
-    <div id="examModal" class="modal">
-        <div class="modal-content">
-            <h3>考试分数录入</h3>
-            <input type="number" id="examScore" placeholder="输入考试分数" min="0" max="100">
-            <div class="error" id="examError"></div>
-            <div class="form-group" style="margin-top:15px">
-                <button onclick="confirmExam()">确认</button>
-                <button onclick="closeModals()">取消</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 自定义奖励弹窗 -->
-    <div id="customModal" class="modal">
-        <div class="modal-content">
-            <h3>自定义积分奖励</h3>
-            <input type="number" id="customPoints" placeholder="输入奖励积分" min="1">
-            <div class="error" id="customError"></div>
-            <div class="form-group" style="margin-top:15px">
-                <button onclick="confirmCustom()">确认</button>
-                <button onclick="closeModals()">取消</button>
-            </div>
-        </div>
-    </div>
 </body>
 
-</html>
+</html>    
