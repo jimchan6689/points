@@ -6,14 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>学生积分管理系统</title>
     <style>
+        /* 全局样式 */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Minecraft', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            padding: 20px;
+            margin: 0;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            position: relative;
         }
 
+        /* 导航栏样式 */
         .nav {
             display: flex;
             gap: 10px;
@@ -22,26 +26,37 @@
         }
 
         .nav button {
+            font-family: 'Minecraft', sans-serif;
             padding: 10px 20px;
             cursor: pointer;
-            background: #4CAF50;
+            background: #999;
             color: white;
-            border: none;
-            border-radius: 4px;
+            border: 4px solid #777;
+            box-shadow: 4px 4px 0 #555;
+            transition: all 0.1s ease;
         }
 
+        .nav button:hover {
+            background: #aaa;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 #555;
+        }
+
+        /* 各部分容器样式 */
         .section {
             display: none;
             padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 4px solid #777;
+            box-shadow: 4px 4px 0 #555;
             margin-top: 15px;
+            background-color: white;
         }
 
         .active {
             display: block;
         }
 
+        /* 表单组样式 */
         .form-group {
             margin-bottom: 15px;
             display: flex;
@@ -52,12 +67,22 @@
 
         input,
         select {
+            font-family: 'Minecraft', sans-serif;
             padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 4px solid #777;
+            box-shadow: 4px 4px 0 #555;
             min-width: 200px;
+            background-color: #fff;
+            color: #333;
         }
 
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #333;
+        }
+
+        /* 表格样式 */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -68,18 +93,33 @@
         td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 4px solid #777;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #999;
+            color: white;
         }
 
+        /* 按钮样式 */
         button {
+            font-family: 'Minecraft', sans-serif;
             padding: 6px 12px;
             cursor: pointer;
+            background: #999;
+            color: white;
+            border: 4px solid #777;
+            box-shadow: 4px 4px 0 #555;
+            transition: all 0.1s ease;
         }
 
+        button:hover {
+            background: #aaa;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 #555;
+        }
+
+        /* 模态框样式 */
         .modal {
             display: none;
             position: fixed;
@@ -96,37 +136,71 @@
             padding: 20px;
             width: 90%;
             max-width: 400px;
-            border-radius: 5px;
+            border: 4px solid #777;
+            box-shadow: 4px 4px 0 #555;
         }
 
+        /* 抽奖框样式 */
         .lottery-box {
             font-size: 24px;
             text-align: center;
             margin: 20px 0;
         }
 
+        /* 抽奖结果样式 */
         .lottery-results {
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 4px solid #777;
+            box-shadow: 4px 4px 0 #555;
         }
 
         #lotteryResults p {
             margin: 5px 0;
         }
 
+        /* 错误提示样式 */
         .error {
-            color: red;
+            color: #ff0000;
             font-size: 12px;
             margin-top: 5px;
         }
 
+        /* 正能量句子框样式 */
         .hitokoto-box {
             padding: 15px;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            background: white;
+            border: 4px solid #777;
+            box-shadow: 4px 4px 0 #555;
             line-height: 1.6;
             margin-bottom: 15px;
+        }
+
+        /* 抽奖次数显示样式 */
+        .lottery-count {
+            font-size: 12px;
+            color: #777;
+            margin-left: 5px;
+        }
+
+        /* 引入 Minecraft 字体 */
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('https://cdn.jsdelivr.net/gh/deltawolf7/MCFonts@master/Fonts/Regular/MinecraftRegular-Bmg3.otf');
+        }
+
+        /* 图标样式 */
+        img {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        /* h 标签添加背景图 */
+        h2, h3 {
+            background-size: contain;
+            background-repeat: no-repeat;
+            padding-left: 30px;
         }
     </style>
     <script src="https://unpkg.com/pinyin-pro@3.0.3/dist/pinyin-pro.min.js"></script>
@@ -134,15 +208,22 @@
 
 <body>
     <div class="nav">
-        <button onclick="showSection('studentMgmt')">学生管理</button>
-        <button onclick="showSection('pointsMgmt')">积分管理</button>
+        <button onclick="showSection('studentMgmt')">
+            <!-- 替换为你 GitHub 仓库中的图片链接 -->
+            <img src="https://raw.githubusercontent.com/jimchan6689/points/refs/heads/main/DM_20250503124432_002.png" alt="学生管理图标"> 学生管理
+        </button>
+        <button onclick="showSection('pointsMgmt')">
+            <!-- 替换为你 GitHub 仓库中的图片链接 -->
+            <img src="https://raw.githubusercontent.com/jimchan6689/points/refs/heads/main/DM_20250503124432_003.png" alt="积分管理图标"> 积分管理
+        </button>
     </div>
 
     <!-- 学生管理 -->
     <div id="studentMgmt" class="section active">
         <!-- 正能量句子区域 -->
         <div class="hitokoto-box" id="hitokotoBox"></div>
-        <h2>学生信息管理</h2>
+        <!-- 替换为你 GitHub 仓库中的图片链接 -->
+        <h2 style="background-image: url('https://raw.githubusercontent.com/jimchan6689/points/refs/heads/main/DM_20250503124432_004.png');">学生信息管理</h2>
         <div class="form-group">
             <form id="studentForm">
                 <input type="hidden" id="studentId">
@@ -168,7 +249,8 @@
 
     <!-- 积分管理 -->
     <div id="pointsMgmt" class="section">
-        <h2>积分管理</h2>
+        <!-- 替换为你 GitHub 仓库中的图片链接 -->
+        <h2 style="background-image: url('https://raw.githubusercontent.com/jimchan6689/points/refs/heads/main/DM_20250503124432_005.png');">积分管理</h2>
         <div class="form-group">
             <input list="studentNames" id="studentInput" placeholder="输入学生姓名或拼音" style="width: 250px;"
                 oninput="filterStudentNames()">
@@ -180,7 +262,8 @@
             <button onclick="showCustomModal()">进步奖励</button>
             <div class="error" id="studentError"></div>
         </div>
-        <h3>积分记录</h3>
+        <!-- 替换为你 GitHub 仓库中的图片链接 -->
+        <h3 style="background-image: url('https://raw.githubusercontent.com/jimchan6689/points/refs/heads/main/DM_20250503124432_006.png');">积分记录</h3>
         <table id="pointsHistory">
             <thead>
                 <tr>
@@ -199,7 +282,8 @@
     <!-- 抽奖弹窗 -->
     <div id="lotteryModal" class="modal">
         <div class="modal-content">
-            <h3>基础积分抽奖（5 - 30分）</h3>
+            <!-- 替换为你 GitHub 仓库中的图片链接 -->
+            <h3 style="background-image: url('https://raw.githubusercontent.com/你的用户名/你的仓库名/main/lottery_modal_background.png');">基础积分抽奖（5 - 30分）</h3>
             <div class="lottery-box" id="lotteryNumber">--</div>
             <div class="form-group">
                 <button onclick="toggleLottery()" id="lotteryControl">▶ 开始抽奖</button>
@@ -207,6 +291,7 @@
                 <button onclick="cancelLottery()" style="background:#f44336">❌ 取消</button>
             </div>
             <div class="lottery-results">
+                <!-- 替换为你 GitHub 仓库中的图片链接 -->
                 <h4>抽奖记录</h4>
                 <div id="lotteryResults"></div>
                 <div id="totalPoints" style="font-weight: bold; margin-top: 10px;"></div>
@@ -217,7 +302,8 @@
     <!-- 考试奖励弹窗 -->
     <div id="examModal" class="modal">
         <div class="modal-content">
-            <h3>考试分数录入</h3>
+            <!-- 替换为你 GitHub 仓库中的图片链接 -->
+            <h3 style="background-image: url('https://raw.githubusercontent.com/jimchan6689/points/refs/heads/main/DM_20250503124432_003.png');">考试分数录入</h3>
             <input type="number" id="examScore" placeholder="输入考试分数" min="0" max="100">
             <div class="error" id="examError"></div>
             <div class="form-group" style="margin-top:15px">
@@ -230,7 +316,8 @@
     <!-- 自定义奖励弹窗 -->
     <div id="customModal" class="modal">
         <div class="modal-content">
-            <h3>自定义积分奖励</h3>
+            <!-- 替换为你 GitHub 仓库中的图片链接 -->
+            <h3 style="background-image: url('https://raw.githubusercontent.com/你的用户名/你的仓库名/main/custom_modal_background.png');">自定义积分奖励</h3>
             <input type="number" id="customPoints" placeholder="输入奖励积分" min="1">
             <div class="error" id="customError"></div>
             <div class="form-group" style="margin-top:15px">
@@ -243,7 +330,8 @@
     <!-- 修改积分弹窗 -->
     <div id="editPointsModal" class="modal">
         <div class="modal-content">
-            <h3>修改积分记录</h3>
+            <!-- 替换为你 GitHub 仓库中的图片链接 -->
+            <h3 style="background-image: url('https://raw.githubusercontent.com/你的用户名/你的仓库名/main/edit_points_modal_background.png');">修改积分记录</h3>
             <input type="number" id="editPoints" placeholder="输入积分">
             <input type="text" id="editDetail" placeholder="输入详情">
             <div class="error" id="editError"></div>
@@ -373,10 +461,11 @@
                 } else if (index === 2) {
                     medal = '🥉';
                 }
+                const lotteryCount = student.history.filter(record => record.type === '基础积分').length;
                 return `
                     <tr>
                         <td>${index + 1}</td>
-                        <td>${medal}${student.name}</td>
+                        <td>${medal}${student.name}<span class="lottery-count">（抽奖次数：${lotteryCount}）</span></td>
                         <td>${student.grade}</td>
                         <td>${student.points}</td>
                         <td>
@@ -386,134 +475,6 @@
                     </tr>
                 `;
             }).join('');
-        }
-
-        // 积分管理功能
-        function startLottery() {
-            if (!findStudent()) return;
-            const lotteryCount = parseInt(document.getElementById('lotteryCount').value);
-            if (isNaN(lotteryCount) || lotteryCount < 1) {
-                alert('请输入有效的抽奖次数');
-                return;
-            }
-            lotteryResults = [];
-            document.getElementById('lotteryModal').style.display = 'block';
-            document.getElementById('lotteryResults').innerHTML = '';
-            document.getElementById('totalPoints').innerHTML = '';
-            startLotteryAnimation(lotteryCount);
-        }
-
-        function startLotteryAnimation(count) {
-            let currentCount = 0;
-            lotteryInterval = setInterval(() => {
-                if (currentCount < count) {
-                    const num = Math.floor(Math.random() *
-                        (pointsRules.basic.max - pointsRules.basic.min + 1)) + pointsRules.basic.min;
-                    lotteryResults.push(num);
-                    const resultsDiv = document.getElementById('lotteryResults');
-                    resultsDiv.innerHTML += `<p>第${currentCount + 1}次抽奖结果：<strong>${num}</strong> 分</p>`;
-                    currentCount++;
-                    const total = lotteryResults.reduce((a, b) => a + b, 0);
-                    document.getElementById('totalPoints').textContent = `当前总分：${total} 分`;
-                } else {
-                    clearInterval(lotteryInterval);
-                    document.getElementById('lotteryControl').textContent = '▶ 开始抽奖';
-                }
-            }, 500);
-        }
-
-        function confirmLottery() {
-            if (!currentStudent || lotteryResults.length === 0) {
-                alert("请先完成抽奖");
-                return;
-            }
-
-            const total = lotteryResults.reduce((a, b) => a + b, 0);
-            addPointsRecord(total, '基础积分', `抽奖获得 ${total} 分`);
-            closeModals();
-        }
-
-        function cancelLottery() {
-            clearInterval(lotteryInterval);
-            lotteryResults = [];
-            document.getElementById('lotteryNumber').textContent = "--";
-            document.getElementById('lotteryResults').innerHTML = "";
-            document.getElementById('lotteryModal').style.display = "none";
-            currentStudent = null;
-            resetInputAndError();
-        }
-
-        // 显示考试奖励弹窗
-        function showExamModal() {
-            if (!findStudent()) return;
-            document.getElementById('examModal').style.display = 'block';
-        }
-
-        // 显示自定义奖励弹窗
-        function showCustomModal() {
-            if (!findStudent()) return;
-            document.getElementById('customModal').style.display = 'block';
-        }
-
-        // 其他积分功能
-        function addHomeworkPoints() {
-            if (!findStudent()) return;
-            addPointsRecord(pointsRules.homework, '完成作业', '作业满分');
-        }
-
-        function confirmExam() {
-            const score = parseInt(document.getElementById('examScore').value);
-            if (!currentStudent || isNaN(score)) {
-                document.getElementById('examError').textContent = "请输入有效分数";
-                return;
-            }
-
-            let points = 0;
-            if (score >= 95) points = 100;
-            else if (score >= 90) points = 50;
-
-            if (points > 0) {
-                addPointsRecord(points, '考试奖励', `${score}分`);
-                closeModals();
-            } else {
-                document.getElementById('examError').textContent = "分数未达到奖励标准";
-            }
-        }
-
-        function confirmCustom() {
-            const points = parseInt(document.getElementById('customPoints').value);
-            if (!currentStudent || isNaN(points) || points < 1) {
-                document.getElementById('customError').textContent = "请输入有效积分";
-                return;
-            }
-
-            addPointsRecord(points, '进步奖励', '自定义奖励');
-            closeModals();
-        }
-
-        // 通用功能
-        function addPointsRecord(points, type, detail) {
-            currentStudent.points += points;
-            currentStudent.history.push({
-                date: new Date().toLocaleDateString(),
-                type: type,
-                detail: detail,
-                points: points,
-                studentName: currentStudent.name
-            });
-            saveDataToIndexedDB();
-            renderAll();
-        }
-
-        function findStudent() {
-            const name = document.getElementById('studentInput').value.trim();
-            currentStudent = students.find(s => s.name === name);
-            if (!currentStudent) {
-                document.getElementById('studentError').textContent = "未找到该学生，请先添加学生";
-                return false;
-            }
-            document.getElementById('studentError').textContent = '';
-            return true;
         }
 
         function renderStudentDatalist() {
@@ -569,7 +530,129 @@
             currentStudent = null;
         }
 
-        // 学生操作
+        function addPointsRecord(points, type, detail) {
+            currentStudent.points += points;
+            currentStudent.history.push({
+                date: new Date().toLocaleDateString(),
+                type: type,
+                detail: detail,
+                points: points,
+                studentName: currentStudent.name
+            });
+            saveDataToIndexedDB();
+            renderAll();
+        }
+
+        function findStudent() {
+            const name = document.getElementById('studentInput').value.trim();
+            currentStudent = students.find(s => s.name === name);
+            if (!currentStudent) {
+                document.getElementById('studentError').textContent = "未找到该学生，请先添加学生";
+                return false;
+            }
+            document.getElementById('studentError').textContent = '';
+            return true;
+        }
+
+        function startLottery() {
+            if (!findStudent()) return;
+            const lotteryCount = parseInt(document.getElementById('lotteryCount').value);
+            if (isNaN(lotteryCount) || lotteryCount < 1) {
+                alert('请输入有效的抽奖次数');
+                return;
+            }
+            lotteryResults = [];
+            document.getElementById('lotteryModal').style.display = 'block';
+            document.getElementById('lotteryResults').innerHTML = '';
+            document.getElementById('totalPoints').innerHTML = '';
+            startLotteryAnimation(lotteryCount);
+        }
+
+        function startLotteryAnimation(count) {
+            let currentCount = 0;
+            lotteryInterval = setInterval(() => {
+                if (currentCount < count) {
+                    const num = Math.floor(Math.random() *
+                        (pointsRules.basic.max - pointsRules.basic.min + 1)) + pointsRules.basic.min;
+                    lotteryResults.push(num);
+                    const resultsDiv = document.getElementById('lotteryResults');
+                    resultsDiv.innerHTML += `<p>第${currentCount + 1}次抽奖结果：<strong>${num}</strong> 分</p>`;
+                    currentCount++;
+                    const total = lotteryResults.reduce((a, b) => a + b, 0);
+                    document.getElementById('totalPoints').textContent = `当前总分：${total} 分`;
+                } else {
+                    clearInterval(lotteryInterval);
+                    document.getElementById('lotteryControl').textContent = '▶ 开始抽奖';
+                }
+            }, 500);
+        }
+
+        function confirmLottery() {
+            if (!currentStudent || lotteryResults.length === 0) {
+                alert("请先完成抽奖");
+                return;
+            }
+
+            const total = lotteryResults.reduce((a, b) => a + b, 0);
+            addPointsRecord(total, '基础积分', `抽奖获得 ${total} 分`);
+            closeModals();
+        }
+
+        function cancelLottery() {
+            clearInterval(lotteryInterval);
+            lotteryResults = [];
+            document.getElementById('lotteryNumber').textContent = "--";
+            document.getElementById('lotteryResults').innerHTML = "";
+            document.getElementById('lotteryModal').style.display = "none";
+            currentStudent = null;
+            resetInputAndError();
+        }
+
+        function showExamModal() {
+            if (!findStudent()) return;
+            document.getElementById('examModal').style.display = 'block';
+        }
+
+        function showCustomModal() {
+            if (!findStudent()) return;
+            document.getElementById('customModal').style.display = 'block';
+        }
+
+        function addHomeworkPoints() {
+            if (!findStudent()) return;
+            addPointsRecord(pointsRules.homework, '完成作业', '作业满分');
+        }
+
+        function confirmExam() {
+            const score = parseInt(document.getElementById('examScore').value);
+            if (!currentStudent || isNaN(score)) {
+                document.getElementById('examError').textContent = "请输入有效分数";
+                return;
+            }
+
+            let points = 0;
+            if (score >= 95) points = 100;
+            else if (score >= 90) points = 50;
+            else {
+                document.getElementById('examError').textContent = "该分数暂无积分奖励";
+                return;
+            }
+
+            addPointsRecord(points, '考试奖励', `${score}分`);
+            closeModals();
+        }
+
+        function confirmCustom() {
+            const points = parseInt(document.getElementById('customPoints').value);
+            if (!currentStudent || isNaN(points) || points < 1) {
+                document.getElementById('customError').textContent = "请输入有效积分";
+                return;
+            }
+
+            addPointsRecord(points, '进步奖励', '自定义奖励');
+            closeModals();
+        }
+
         function editStudent(id) {
             const student = students.find(s => s.id == id);
             if (student) {
