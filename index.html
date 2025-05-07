@@ -774,6 +774,8 @@
             students[currentStudentIndex].points = students[currentStudentIndex].points - oldPoints + newPoints;
             students[currentStudentIndex].history[currentRecordIndex].points = newPoints;
             students[currentStudentIndex].history[currentRecordIndex].detail = newDetail;
+            // 更新日期为当前日期
+            students[currentStudentIndex].history[currentRecordIndex].date = new Date().toLocaleDateString();
 
             saveDataToIndexedDB();
             renderAll();
