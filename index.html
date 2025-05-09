@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -5,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>学生积分管理系统</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -383,6 +385,41 @@
 
     <script>
         window.addEventListener('load', () => {
+    // WebRTC初始化
+    const peer = new Peer({
+        host: '0.peerjs.com',
+        port: 443,
+        path: '/'
+    });
+
+    // 连接信令服务器
+    const conn = peer.connect(location.hash.slice(1) || 'default-room');
+
+    // 设备发现处理
+    peer.on('connection', (connection) => {
+        connection.on('data', (data) => {
+            if (data.type === 'sync') {
+                const remoteStudent = data.payload;
+                const transaction = db.transaction(['students'], 'readwrite');
+                const objectStore = transaction.objectStore('students');
+                
+                // 获取本地数据对比时间戳
+                const request = objectStore.get(remoteStudent.id);
+                request.onsuccess = function(e) {
+                    const localStudent = e.target.result;
+                    if (!localStudent || remoteStudent.lastModified > localStudent.lastModified) {
+                        if(remoteStudent._deleted) {
+                            objectStore.delete(remoteStudent.id);
+                        } else {
+                            objectStore.put(remoteStudent);
+                        }
+                    }
+                };
+                renderAll();
+            }
+        });
+    });
+
             fetchHitokoto();
             init();
             setupDraggableModals();
@@ -556,9 +593,21 @@
         }
 
         function saveDataToIndexedDB() {
+    // 数据同步处理
+    window.indexedDB.open('pointsDB').onsuccess = (e) => {
+        const tx = e.target.result.transaction('students', 'readonly');
+        const store = tx.objectStore('students');
+        store.getAll().onsuccess = (event) => {
+            conn.send({
+                type: 'sync',
+                payload: event.target.result
+            });
+        };
+    };
             const transaction = db.transaction(['students'], 'readwrite');
             const objectStore = transaction.objectStore('students');
             students.forEach(student => {
+                student.lastModified = Date.now();
                 objectStore.put(student);
             });
             transaction.oncomplete = function () {
@@ -708,9 +757,14 @@
         function deleteStudent(id) {
             if (confirm('确定要删除该学生吗？')) {
                 students = students.filter(s => s.id != id);
+            const currentTimestamp = Date.now();
                 const transaction = db.transaction(['students'], 'readwrite');
                 const objectStore = transaction.objectStore('students');
                 objectStore.delete(id);
+            if (peer) {
+                const deletedStudent = { id: id, _deleted: true, lastModified: currentTimestamp };
+                peer.send(JSON.stringify(deletedStudent));
+            }
                 transaction.oncomplete = function () {
                     console.log('学生信息从 IndexedDB 删除成功');
                     renderAll();
